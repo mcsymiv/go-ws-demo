@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Go - Websocket Course | Home</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+</head>
+<body>
+  <div class="container m-5">
+    <div class="row">
+      <div class="col">
+        <h1 class="mt-3">Home page</h1>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-6">
+        <h3>Chat</h3>
+        <div class="form-group mt-2">
+          <label for="username">Username:</label>
+          <input type="text" for="username" id="username" class="form-control">
+        </div>
+        <div class="form-group mt-2">
+          <label for="message">Message:</label>
+          <input type="text" for="message" id="message" class="form-control">
+        </div>
+        <hr>
+        <div id="chatbox" class="input-group mt-3">
+          <span class="input-group-text">Chat</span>
+          <textarea class="form-control" aria-label="With textarea"></textarea>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <h3>Online</h3>
+        <ul id="connectedUsers">
+        </ul>
+      </div>
+    </div>
+  </div>
+</body>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+<script>
+  let socket = null;
+  window.onbeforeunload = () => {
+    console.log("Leaving page");
+    let json = {}
+    json["action"] = "left";
+    socket.send(JSON.stringify(json));
+  };
+  document.addEventListener("DOMContentLoaded", function() {
+    socket = new WebSocket("ws://127.0.0.1:8098/ws", "echo-protocol");
+    socket.onopen = () => {
+      console.log("Connected to ws client");
+      let connJson = {
+        action: "connected",
+      };
+      socket.send(JSON.stringify(connJson));
+    };
+    socket.onclose = () => {
+      console.log("Connection closed");
+    };
+    socket.onerror = error => {
+      console.log("Error:", error);
+    };
+    socket.onmessage = msg => {
+      msgData = JSON.parse(msg.data);
+      console.log(msgData);
+      console.log(`Action: ${msgData.action}`);
+      let action = msgData.action;
+      switch (action) {
+        case "connectedUsers": {
+          let ul = document.querySelector(`#${action}`);
+          while (ul.firstChild) ul.removeChild(ul.firstChild);
+          if (msgData.connectedUsers?.length > 0) {
+            msgData.connectedUsers.forEach(user => {
+              let li = document.createElement("li");
+              li.appendChild(document.createTextNode(user));
+              ul.appendChild(li);
+            });
+          }
+          break;
+        }
+      }
+    };
+    let usernameInput = document.querySelector("#username")
+    usernameInput.addEventListener("change", function() {
+      let usernameJson = {};
+      usernameJson["action"] = "login",
+      usernameJson["username"] = this.value,
+      socket.send(JSON.stringify(usernameJson));
+    });
+  });
+</script>
+</html>
