@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"sort"
@@ -13,7 +14,7 @@ type WsConnection struct {
 	*websocket.Conn
 }
 
-// defines the response send back from websocket
+// defines the response send back from BE to the client
 type WsResponse struct {
 	Action         string   `json:"action"`
 	Message        string   `json:"message"`
@@ -72,6 +73,12 @@ func ListenWsChannel() {
       delete(clients, event.Connection)
 			users := getUsersFromClientsAsList()
       response.ConnectedUsers = users
+		  BroadcastToAll(response)
+    case "broadcast":
+      users := getUsersFromClientsAsList()
+      response.Action = "broadcastMessage"
+      response.ConnectedUsers = users
+      response.Message = fmt.Sprintf("%s\n%s", event.Username, event.Message)
 		  BroadcastToAll(response)
 		}
 	}
