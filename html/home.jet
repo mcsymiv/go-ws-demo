@@ -35,7 +35,7 @@
 
         <div id="chatbox" class="input-group mt-3 mh-300 h-100 overflow-scroll">
           <span class="input-group-text">Chat</span>
-          <textarea id="chatboxMessages" class="form-control" aria-label="With textarea"></textarea>
+          <div id="msgOutput" class="p-2"></div>
         </div>
       </div>
 
@@ -83,6 +83,7 @@
       msgData = JSON.parse(msg.data);
       console.log(msgData);
       console.log(`Action: ${msgData.action}`);
+
       let action = msgData.action;
       switch (action) {
         case "connectedUsers": {
@@ -97,9 +98,10 @@
           }
           break;
         }
+
         case "broadcastMessage": {
-          let chatboxMessages = document.querySelector('#chatboxMessages');
-          chatboxMessages.value += msgData.message;
+          let chatboxMessages = document.querySelector('#msgOutput');
+          chatboxMessages.innerHTML += msgData.message + "<br>";
           break;
         }
       }
